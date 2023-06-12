@@ -1,0 +1,18 @@
+version: "3.3"
+services:
+  bot:
+    build: .
+    volumes:
+      - .:/med_bot
+    ports:
+      - 8141:8141
+    command: python main.py
+    env_file:
+      - .env
+    networks:
+      - mysql-network
+
+networks:
+  mysql-network:
+    external:
+      name: mysql-network
