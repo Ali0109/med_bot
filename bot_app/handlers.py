@@ -40,10 +40,11 @@ async def distributor_handler(message: types.Message, state: FSMContext):
 @dp.message_handler(content_types=['text'], state=[MedState.distributor])
 async def csv_handler(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
+        # BACK
         await async_functions.back_to_start(message, state)
         if message.text == text.download_csv:
             get_csv_filepath = api.get_csv(data['distributor']['name'])
-            with open(get_csv_filepath, "rb") as f:
+            with open(get_csv_filepath, "r") as f:
                 file = f.read()
                 await bot.send_document(
                     message.from_user.id,
@@ -51,15 +52,15 @@ async def csv_handler(message: types.Message, state: FSMContext):
                 )
             await bot.send_message(
                 message.from_user.id,
-                "Надеюсь ты счастлив кожанный.",
+                "Надеюсь ты счастлив.",
                 reply_markup=keyboards.csv_keyboard(),
             )
         if message.text == text.upload_csv:
             await MedState.csv.set()
             await bot.send_message(
                 message.from_user.id,
-                f"Загрузи файл csv {data['distributor']['name']} и смотри, чтобы все поля были правильные, "
-                f"я не хочу твои ошибки искать, мне за это не платят.",
+                f"Загрузи файл csv 📎 {data['distributor']['name']} и смотри, чтобы все поля были правильные и "
+                f"разделитель был ; я не хочу твои ошибки искать, мне за это не платят.",
                 reply_markup=keyboards.upload_keyboard(),
             )
 
@@ -70,18 +71,20 @@ async def csv_handler(message: types.Message, state: FSMContext):
 )
 async def upload_csv_handler(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
+        # BACK
         await async_functions.back_to_distributor(message, state)
         if message.document:
             # GET FILE
             file_id = message.document.file_id
-            file_path = await bot.get_file(file_id)['file_path']
-            print(file_path)
+            file_data = await bot.get_file(file_id)
+            file_path = str(file_data['file_path'])
             # SEND API
             upload_csv_api = api.upload_csv(file_path, data['distributor']['name'], message.from_user.id)
+            await MedState.distributor.set()
             if upload_csv_api.status_code == 200:
                 await bot.send_message(
                     message.from_user.id,
-                    f"Ого, ну ты меня и загрузил! Идика, попей чайку как закончу напишу.",
+                    f"Ого, ну ты меня и загрузил! Идика, попей чайку тут походу придется рукава засучивать. Закончу напишу.",
                     reply_markup=keyboards.csv_keyboard(),
                 )
             elif upload_csv_api.status_code == 400:
@@ -93,6 +96,6 @@ async def upload_csv_handler(message: types.Message, state: FSMContext):
             else:
                 await bot.send_message(
                     message.from_user.id,
-                    f"Чтото похерилось, опять разраб рукожоп, сервак уронил",
+                    f"Чтото похерилось, ты оплатил за сервак??? или опять разраб рукожоп, сервак уронил.",
                     reply_markup=keyboards.csv_keyboard(),
                 )

@@ -1,9 +1,8 @@
-import datetime
-
 import requests
 
 import settings
 from settings import DOMAIN, ENDPOINT
+from . import functions
 
 
 def get_csv(distributor_name):
@@ -15,7 +14,7 @@ def get_csv(distributor_name):
         response = requests.get(
             url=csv_url,
         )
-        current_date = datetime.date.today()
+        current_date = functions.get_current_date()
         file_path = f"media/csv/{distributor_name}/{distributor_name}_{current_date}.csv"
         file = open(file_path, "wb")
         file.write(response.content)
@@ -27,19 +26,20 @@ def get_csv(distributor_name):
 
 
 def upload_csv(file_path, distributor_name, chat_id):
-    file_url = f"https://api.telegram.org/file/bot{settings.API_KEY}/document/{file_path}"
-    with open(file_url, "r") as file:
-        url = f"{DOMAIN}/{ENDPOINT}/document/{distributor_name}/parse"
-        data = {
-            "chat_id": chat_id,
-        }
-        file_data = {
-            "csv": (file_url, file),
-        }
-        upload_req = requests.post(
-            url,
-            data=data,
-            files=file_data,
-        )
-    print(upload_req)
-    return upload_req
+    # FILE
+    file_url = f"https://api.telegram.org/file/bot{settings.API_KEY}/{file_path}"
+    file_response = requests.get(file_url)
+    current_date = functions.get_current_date()
+    files = {"csv": (f"{distributor_name}_{current_date}.csv", file_response.content)}
+
+    # API URL
+    url = f"{DOMAIN}/{ENDPOINT}/document/{distributor_name}/parse"
+    data = {
+        "chat_id": chat_id,
+    }
+    response = requests.post(
+        url,
+        data=data,
+        files=files,
+    )
+    return response
