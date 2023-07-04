@@ -52,7 +52,7 @@ async def csv_handler(message: types.Message, state: FSMContext):
                 )
             await bot.send_message(
                 message.from_user.id,
-                "Надеюсь ты счастлив.",
+                "Все я пошел чилить.",
                 reply_markup=keyboards.csv_keyboard(),
             )
         if message.text == text.upload_csv:
