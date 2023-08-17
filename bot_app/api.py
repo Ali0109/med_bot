@@ -14,8 +14,8 @@ def get_csv(distributor_name):
         response = requests.get(
             url=csv_url,
         )
-        current_date = functions.get_current_date()
-        file_path = f"media/csv/{distributor_name}/{distributor_name}_{current_date}.csv"
+        file_name = csv_url.split("/")[-1]
+        file_path = f"media/csv/{distributor_name}/{file_name}"
         file = open(file_path, "wb")
         file.write(response.content)
         file.close()
